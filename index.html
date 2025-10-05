@@ -1,0 +1,77 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🔥 Prediksi Kalori Terbakar</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h2>🔥 Prediksi Kalori Terbakar</h2>
+      <p>Masukkan total jarak aktivitas fisik (dalam kilometer) untuk memperkirakan kalori yang terbakar.</p>
+
+      <form method="POST" action="/predict" id="predictionForm">
+        <div class="mdc-text-field mdc-text-field--outlined">
+          <input
+            type="number"
+            step="0.01"
+            class="mdc-text-field__input"
+            id="distance"
+            name="distance"
+            required
+            placeholder=" "
+          />
+          <div class="mdc-notched-outline">
+            <div class="mdc-notched-outline__leading"></div>
+            <div class="mdc-notched-outline__notch">
+              <label for="distance" class="mdc-floating-label">Jarak Tempuh (km)</label>
+            </div>
+            <div class="mdc-notched-outline__trailing"></div>
+          </div>
+        </div>
+        <button type="submit" class="mdc-button">Hitung Kalori</button>
+      </form>
+
+      {% if prediction is not none and 'Error' not in prediction|string %}
+        <div class="result-box show" id="resultBox">
+          <h3>✅ Hasil Prediksi</h3>
+          <p>Untuk jarak <strong>{{ input_distance }} km</strong>, estimasi kalori terbakar:</p>
+          <h2 style="color: #6200ee;">{{ prediction }} kalori</h2>
+        </div>
+      {% elif prediction is not none %}
+        <div class="result-box show" style="background: #ffebee; border-left-color: #d32f2f;">
+          <strong>⚠️ {{ prediction }}</strong>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h3>📊 Data Asli: Jarak vs Kalori</h3>
+      <div class="graph-container">
+        <img src="{{ url_for('static', filename='plots/scatter_data.png') }}" alt="Scatter Plot">
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📈 Performa Model: Aktual vs Prediksi</h3>
+      <div class="graph-container">
+        <img src="{{ url_for('static', filename='plots/actual_vs_pred.png') }}" alt="Actual vs Predicted">
+      </div>
+    </div>
+
+    <footer>
+      <p class="mb-2">Berdasarkan dataset aktivitas harian dari Fitbit.</p>
+      <p class="mb-0">
+        <a href="https://www.kaggle.com/datasets/yaminh/fitness-track-daily-activity-dataset"
+           target="_blank" rel="noopener noreferrer"
+           style="color: #6200ee; text-decoration: none; font-weight: 500;">
+          🔗 Lihat Dataset di Kaggle
+        </a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
