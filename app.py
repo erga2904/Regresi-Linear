@@ -10,41 +10,47 @@ import os
 app = Flask(__name__)
 os.makedirs("static/plots", exist_ok=True)
 
-# Muat dataset dan model
-df = pd.read_csv("Activity.csv")
+# Jika model belum ada, latih ulang
+if not os.path.exists("model.pkl"):
+    print("Model tidak ditemukan. Melatih model...")
+    exec(open("train_model.py").read())
+
+# Muat model
 model = joblib.load('model.pkl')
 
-# Filter data realistis
+# Muat dataset untuk visualisasi
+df = pd.read_csv("Activity.csv")
 df_clean = df[(df['Total_Distance'] > 0) & (df['Calories_Burned'] > 1500)].copy()
 
-# === Scatter Plot: Data Asli ===
-plt.figure(figsize=(6, 4))
-plt.scatter(df_clean['Total_Distance'], df_clean['Calories_Burned'], alpha=0.6, color='steelblue')
-plt.title('Jarak vs Kalori Terbakar (Data Asli)')
-plt.xlabel('Total Jarak (km)')
-plt.ylabel('Kalori Terbakar')
-plt.grid(True)
-plt.tight_layout()
-plt.savefig('static/plots/scatter_data.png')
-plt.close()
+# === Buat plot (jika belum ada) ===
+if not os.path.exists("static/plots/scatter_data.png"):
+    plt.figure(figsize=(6, 4))
+    plt.scatter(df_clean['Total_Distance'], df_clean['Calories_Burned'], alpha=0.6, color='steelblue')
+    plt.title('Jarak vs Kalori Terbakar (Data Asli)')
+    plt.xlabel('Total Jarak (km)')
+    plt.ylabel('Kalori Terbakar')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig('static/plots/scatter_data.png')
+    plt.close()
 
-# === Grafik: Aktual vs Prediksi ===
-from sklearn.model_selection import train_test_split
-X = df_clean[['Total_Distance']]
-y = df_clean['Calories_Burned']
-_, X_test, _, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-y_pred = model.predict(X_test)
-
-plt.figure(figsize=(6, 4))
-plt.scatter(y_test, y_pred, alpha=0.7, color='green')
-plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
-plt.title('Kalori Aktual vs Prediksi')
-plt.xlabel('Kalori Aktual')
-plt.ylabel('Kalori Prediksi')
-plt.grid(True)
-plt.tight_layout()
-plt.savefig('static/plots/actual_vs_pred.png')
-plt.close()
+if not os.path.exists("static/plots/actual_vs_pred.png"):
+    from sklearn.model_selection import train_test_split
+    X = df_clean[['Total_Distance']]
+    y = df_clean['Calories_Burned']
+    _, X_test, _, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    y_pred = model.predict(X_test)
+    
+    plt.figure(figsize=(6, 4))
+    plt.scatter(y_test, y_pred, alpha=0.7, color='green')
+    plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+    plt.title('Kalori Aktual vs Prediksi')
+    plt.xlabel('Kalori Aktual')
+    plt.ylabel('Kalori Prediksi')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig('static/plots/actual_vs_pred.png')
+    plt.close()
 
 # === Routes ===
 @app.route('/')
@@ -63,4 +69,5 @@ def predict():
         return render_template('index.html', prediction=f"Error: {str(e)}", input_distance=None)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
