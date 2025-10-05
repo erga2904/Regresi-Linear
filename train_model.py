@@ -5,7 +5,6 @@ from sklearn.linear_model import LinearRegression
 import joblib
 import os
 
-# Buat folder plots jika belum ada
 os.makedirs("static/plots", exist_ok=True)
 
 # Muat dataset
